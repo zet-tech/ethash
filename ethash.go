@@ -176,7 +176,7 @@ func hashToH256(in common.Hash) C.ethash_h256_t {
 	return C.ethash_h256_t{b: *(*[32]C.uint8_t)(unsafe.Pointer(&in[0]))}
 }
 
-func (l *Light) computeMixDigest(blockNum uint64, hashNoNonce common.Hash, nonce uint64) (ok bool, mixDigest common.Hash, result common.Hash) {
+func (l *Light) ComputeMixDigest(blockNum uint64, hashNoNonce common.Hash, nonce uint64) (ok bool, mixDigest common.Hash, result common.Hash) {
 	cache := l.getCache(blockNum)
 	dagSize := C.ethash_get_datasize(C.uint64_t(blockNum))
 	return cache.compute(uint64(dagSize), hashNoNonce, nonce)
@@ -208,7 +208,7 @@ func le256todouble(target [32]byte) float64 {
 	return dcut64
 }
 
-func share_diff(h [32]byte) float64 {
+func shareDiff(h [32]byte) float64 {
 	var truediffone float64 = 26959535291011309493156476344723991336010898738574164086137773096960.0
 	var s64 float64
 
@@ -224,11 +224,10 @@ func share_diff(h [32]byte) float64 {
 	return truediffone / s64
 }
 
-func (l *Light) GetShareDiff(blockNum uint64, headerHash common.Hash, nonce uint64) (diff float64, mixDigest common.Hash) {
-	_, md, h := l.computeMixDigest(blockNum, headerHash, nonce)
+func (l *Light) GetShareDiff(h common.Hash) (diff float64) {
 	var b [32]byte
 	copy(b[:], h.Bytes())
-	return share_diff(b), md
+	return shareDiff(b)
 }
 
 func (l *Light) getCache(blockNum uint64) *cache {
